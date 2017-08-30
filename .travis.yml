@@ -7,6 +7,7 @@ services: postgresql
 
 install:
   - pip install -r requirements.txt
+  - pip install codecov
 
 before_script:
   - sudo apt-get install openssl libssl-dev
@@ -15,3 +16,7 @@ before_script:
 
 script:
   - python manage.py test
+  - coverage run --source='.' manage.py test
+
+after_success:
+  - bash <(curl -s https://codecov.io/bash)
