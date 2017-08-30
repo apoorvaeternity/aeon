@@ -1,6 +1,7 @@
 from rest_framework import status
 from rest_framework.test import APITestCase
 from django.urls import reverse
+from django.contrib.auth.models import User
 from core.models import Profile
 
 
@@ -52,3 +53,34 @@ class UserRegistrationTests(APITestCase):
         response = self.client.post(self.url, data)
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(response.data['email'][0], "A user with that email already exists.")
+
+
+class UserAuthenticationTests(APITestCase):
+    url = reverse('core:login')
+
+    def test_valid_user_auth(self):
+        """
+        Ensure we get a token in case of correct credentials
+        """
+        user = User.objects.create_user(username='some_username', password='some_password',
+                                        email='some_email@gmail.com')
+        Profile.objects._create_auth_token(user=user)
+
+        data = {'username': 'some_username', 'password': 'some_password'}
+        response = self.client.post(self.url, data)
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data['token'], user.auth_token.key)
+
+    def test_invalid_user_auth(self):
+        """
+        Ensure we do not get token in case of wrong credentials
+        """
+        user = User.objects.create_user(username='some_username', password='some_password',
+                                        email='some_email@gmail.com')
+        Profile.objects._create_auth_token(user=user)
+        data = {'username': 'some_username', 'password': 'wrong_password'}
+        response = self.client.post(self.url, data)
+
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+        self.assertEqual('token' in response.data, False)
