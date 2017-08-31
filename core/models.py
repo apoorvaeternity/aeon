@@ -8,8 +8,8 @@ class ProfileModelManager(models.Manager):
         Token.objects.get_or_create(user=user)
         return user.auth_token.key
 
-    def _delete_auth_token(self):
-        return self.user.auth_token.delete()
+    def _delete_auth_token(self, user):
+        return Token.objects.get(user=user).delete()
 
 
 class Profile(models.Model):

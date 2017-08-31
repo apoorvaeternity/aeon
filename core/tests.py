@@ -84,3 +84,24 @@ class UserAuthenticationTests(APITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
         self.assertEqual('token' in response.data, False)
+
+
+class UserLogoutTest(APITestCase):
+    url = reverse('core:logout')
+
+    def test_logout(self):
+        user = User.objects.create_user(username='some_username', password='some_password',
+                                        email='some_email@gmail.com')
+        Profile.objects._create_auth_token(user=user)
+        data = {'username': 'some_username', 'password': 'some_password'}
+        response = self.client.post(reverse('core:login'), data)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        self.client.credentials(HTTP_AUTHORIZATION='Token {}'.format(user.auth_token.key))
+        logout_response = self.client.post(self.url)
+        self.assertEqual(logout_response.status_code, status.HTTP_200_OK)
+
+        # Try to logout again with same token
+
+        logout_response2 = self.client.post(self.url)
+        self.assertEqual(logout_response2.status_code, status.HTTP_401_UNAUTHORIZED)

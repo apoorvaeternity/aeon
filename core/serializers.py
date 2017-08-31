@@ -56,3 +56,14 @@ class UserAuthenticationSerializer(serializers.Serializer):
         attrs['user'] = user
         attrs['token'] = Profile.objects._create_auth_token(user=user)
         return attrs
+
+
+class UserLogoutSerializer(serializers.Serializer):
+    def validate(self, attrs):
+        user = self.context['request'].user
+        if user.auth_token.key:
+            Profile.objects._delete_auth_token(user)
+        else:
+            msg = 'User is not logged in.'
+            raise serializers.ValidationError(msg, code='authorization')
+        return attrs
