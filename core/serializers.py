@@ -1,7 +1,7 @@
 from django.contrib.auth.models import User
 from django.contrib.auth import authenticate
 from rest_framework import serializers
-from core.models import Profile
+from core.models import Profile, Objective
 
 
 class UserRegistrationSerializer(serializers.ModelSerializer):
@@ -67,3 +67,38 @@ class UserLogoutSerializer(serializers.Serializer):
             msg = 'User is not logged in.'
             raise serializers.ValidationError(msg, code='authorization')
         return attrs
+
+
+class ObjectiveCreateSerializer(serializers.ModelSerializer):
+    title = serializers.CharField(allow_null=False)
+    target_date = serializers.DateField(allow_null=False)
+    target_time = serializers.TimeField(allow_null=False)
+
+    def save(self, **kwargs):
+        Objective.objects.create(user=self.context['request'].user, title=self.validated_data['title'],
+                                 target_time=self.validated_data['target_time'],
+                                 target_date=self.validated_data['target_date'])
+
+    class Meta:
+        model = Objective
+        fields = ('title', 'target_date', 'target_time')
+
+
+class ObjectiveListSerializer(serializers.Serializer):
+    title = serializers.SerializerMethodField()
+    target_date = serializers.SerializerMethodField()
+    target_time = serializers.SerializerMethodField()
+
+    def get_target_date(self,obj):
+        return obj.target_date
+    def get_title(self,obj):
+        return obj.title
+    def get_target_time(self,obj):
+        return obj.target_time
+
+
+
+class MilestoneCreateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Objective
+        fields = ('objective', 'title', 'target_date', 'target_time')

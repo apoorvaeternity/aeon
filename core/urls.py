@@ -1,9 +1,10 @@
 from django.conf.urls import url
-from core.views import UserRegistrationView, UserAuthenticationView, UserLogoutView
+from core.views import UserRegistrationView, UserAuthenticationView, UserLogoutView, ObjectiveCreateView, \
+    ObjectiveListView
 
 app_name = 'core'
 urlpatterns = [
-    url(r'^register/', UserRegistrationView.as_view(), name='register'),
-    url(r'^login/', UserAuthenticationView.as_view(), name='login'),
-    url(r'^logout/', UserLogoutView.as_view(), name='logout'),
+    url(r'^auth/', include('knox.urls'))
+    url(r'^objective-create/', ObjectiveCreateView.as_view(), name='objective_create'),
+    url(r'^objective-list/', ObjectiveListView.as_view(), name='objective_list'),
 ]
